@@ -1,0 +1,298 @@
+* Interface tweaks 
+** Interface 
+   #+BEGIN_SRC emacs-lisp
+     (scroll-bar-mode 0)
+     (tool-bar-mode 0)
+     (global-display-line-numbers-mode 1)
+     (defalias 'yes-or-no-p 'y-or-n-p)
+     (setq org-ellipsis "▼")
+
+     (use-package beacon
+       :diminish beacon-mode
+       :ensure t
+       :init
+       (beacon-mode 1))
+   #+END_SRC
+** Mode line 
+   #+BEGIN_SRC emacs-lisp
+     (use-package spaceline
+       :ensure t
+       :config
+       (spaceline-emacs-theme))
+
+     (use-package diminish
+       :ensure t)
+   #+END_SRC
+** Window size 
+   #+BEGIN_SRC emacs-lisp
+     (if (display-graphic-p)
+	 (progn
+	   (setq initial-frame-alist
+		 '(
+		   (tool-bar-lines . 0)
+		   (width . 150) ; chars
+		   (height . 40) ; lines
+		   (left . 50)
+		   (top . 50)))
+	   (setq default-frame-alist
+		 '(
+		   (tool-bar-lines . 0)
+		   (width . 150)
+		   (height . 40)
+		   (left . 50)
+		   (top . 50))))
+       (progn
+	 (setq initial-frame-alist '( (tool-bar-lines . 0)))
+	 (setq default-frame-alist '( (tool-bar-lines . 0)))))
+   #+END_SRC
+** Font 
+   #+BEGIN_SRC emacs-lisp
+   (add-to-list 'default-frame-alist '(font . "Fira Code-14"))
+   #+END_SRC
+* Different modes
+  #+BEGIN_SRC emacs-lisp
+    (use-package smartparens
+      :diminish smartparens-global-mode
+      :ensure t
+      :config
+      (smartparens-global-mode t)
+      )
+    (which-key-mode 1)
+  #+END_SRC
+* Key bindings 
+  #+BEGIN_SRC emacs-lisp
+  (setq projectile-keymap-prefix (kbd "C-c C-p"))
+  
+  ;; newline-without-break-of-line
+  (defun newline-without-break-of-line ()
+    "1. move to end of the line.
+     2. insert newline with index"
+
+    (interactive)
+    (let ((oldpos (point)))
+      (end-of-line)
+      (newline-and-indent)))
+
+  (global-set-key (kbd "<s-return>") 'newline-without-break-of-line)
+
+  (global-set-key (kbd "s-'") 'ace-window)
+  
+  (global-set-key (kbd "C-c c") 'counsel-org-capture)
+  #+END_SRC
+* Backup config 
+  #+BEGIN_SRC emacs-lisp
+    ;; Put backup files neatly away                                                 
+    (let ((backup-dir "~/.saves")
+	  (auto-saves-dir "~/.saves/auto-saves/"))
+      (dolist (dir (list backup-dir auto-saves-dir))
+	(when (not (file-directory-p dir))
+	  (make-directory dir t)))
+      (setq backup-directory-alist `(("." . ,backup-dir))
+	    auto-save-file-name-transforms `((".*" ,auto-saves-dir t))
+	    auto-save-list-file-prefix (concat auto-saves-dir ".saves-")
+	    tramp-backup-directory-alist `((".*" . ,backup-dir))
+	    tramp-auto-save-directory auto-saves-dir))
+
+    (setq backup-by-copying t    ; Don't delink hardlinks                           
+	  delete-old-versions t  ; Clean up the backups                             
+	  version-control t      ; Use version numbers on backups,                  
+	  kept-new-versions 5    ; keep some new versions                           
+	  kept-old-versions 2)   ; and some old ones, too
+  #+END_SRC
+* Projectile 
+  #+BEGIN_SRC emacs-lisp
+    (use-package projectile
+      :diminish projectile-mode
+      :ensure t
+      :config
+      (define-key projectile-mode-map (kbd "s-p") 'projectile-command-map)
+      (define-key projectile-mode-map (kbd "C-c p") 'projectile-command-map)
+      (projectile-mode +1)
+      (counsel-projectile-mode 1)
+      )
+  #+END_SRC
+* Shell 
+** Env shell 
+   #+BEGIN_SRC emacs-lisp
+     (use-package exec-path-from-shell
+       :ensure t
+       :init
+       (exec-path-from-shell-initialize)
+       (exec-path-from-shell-copy-env "PYTHONPATH")
+       )
+   #+END_SRC
+* Python 
+** Flycheck 
+   #+BEGIN_SRC emacs-lisp
+     (use-package flycheck
+       :diminish global-flycheck-mode
+       :diminish flycheck-mode
+       :ensure t
+       :init
+       (global-flycheck-mode t))
+   #+END_SRC
+** Pipenv 
+   #+BEGIN_SRC emacs-lisp
+     (use-package pipenv
+       :diminish pipenv-mode "Pip"
+       :hook (python-mode . pipenv-mode)
+       :init
+       (setq
+	pipenv-projectile-after-switch-function
+	#'pipenv-projectile-after-switch-default))
+   #+END_SRC
+** Pytest 
+   #+BEGIN_SRC emacs-lisp
+     (use-package pytest
+       :init
+       (progn
+	 (setq pytest-cmd-format-string "cd %s; and pipenv run %s %s %s"))
+       :ensure t)
+   #+END_SRC
+* Org mode 
+  #+BEGIN_SRC emacs-lisp
+    (use-package org-bullets
+      :diminish org-bullets-mode
+      :ensure t
+      :init
+      (add-hook 'org-mode-hook (lambda () (org-bullets-mode 1)))
+    )
+  #+END_SRC
+** Org Capture
+   #+BEGIN_SRC emacs-lisp
+   
+   #+END_SRC
+* Ace windows for easy window switching 
+** Ace jump buffer 
+   #+BEGIN_SRC emacs-lisp
+     (use-package ace-jump-buffer
+       :ensure t
+       :config
+       (setq ajb-max-window-height 100))
+   #+END_SRC
+* Swiper / Ivy / Counsel 
+  #+BEGIN_SRC emacs-lisp
+    (ivy-mode 1)
+
+    (setq ivy-use-virtual-buffers t)
+    (setq ivy-count-format "(%d/%d) ")
+
+    (global-set-key (kbd "C-s") 'swiper)
+    (global-set-key (kbd "M-x") 'counsel-M-x)
+    (global-set-key (kbd "C-x C-f") 'counsel-find-file)
+    (global-set-key (kbd "<f1> f") 'counsel-describe-function)
+    (global-set-key (kbd "<f1> v") 'counsel-describe-variable)
+    (global-set-key (kbd "<f1> l") 'counsel-find-library)
+    (global-set-key (kbd "<f2> i") 'counsel-info-lookup-symbol)
+    (global-set-key (kbd "<f2> u") 'counsel-unicode-char)
+  #+END_SRC
+* Avy 
+** Go to char
+   #+BEGIN_SRC emacs-lisp
+   (global-set-key (kbd "C-:") 'avy-goto-char)
+   #+END_SRC
+* Autocomplete
+  #+BEGIN_SRC emacs-lisp
+    (use-package company
+      :diminish company-mode
+      :ensure t
+      :config
+      (setq company-idle-delay 0)
+      (setq company-minimum-prefix-length 3)
+      (global-company-mode t))
+
+    (use-package company-irony
+      :ensure t
+      :config 
+      (add-to-list 'company-backends 'company-irony))
+
+    (use-package irony
+      :ensure t
+      :config
+      (add-hook 'c++-mode-hook 'irony-mode)
+      (add-hook 'c-mode-hook 'irony-mode)
+      (add-hook 'irony-mode-hook 'irony-cdb-autosetup-compile-options))
+
+    (use-package irony-eldoc
+      :diminish 
+      :ensure t
+      :config
+      (add-hook 'irony-mode-hook #'irony-eldoc))
+
+    (use-package company-anaconda
+      :ensure t
+      :config
+      (add-to-list 'company-backends 'company-anaconda))
+
+    (use-package anaconda-mode
+      :diminish anaconda-mode
+      :ensure t
+      :config
+      (add-hook 'python-mode-hook 'anaconda-mode)
+      (add-hook 'python-mode-hook 'anaconda-eldoc-mode))
+  #+END_SRC
+* Auto Update 
+  #+BEGIN_SRC emacs-lisp
+    (use-package auto-package-update
+      :ensure t
+      :config
+      (setq auto-package-update-delete-old-versions t)
+      (setq auto-package-update-hide-results t)
+      (auto-package-update-maybe))
+  #+END_SRC
+* Russian layout 
+** Init
+  #+BEGIN_SRC emacs-lisp
+    (defun cfg:reverse-input-method (input-method)
+      "Build the reverse mapping of single letters from INPUT-METHOD."
+      (interactive
+       (list (read-input-method-name "Use input method (default current): ")))
+      (if (and input-method (symbolp input-method))
+	  (setq input-method (symbol-name input-method)))
+      (let ((current current-input-method)
+	    (modifiers '(nil (control) (meta) (control meta))))
+	(when input-method
+	  (activate-input-method input-method))
+	(when (and current-input-method quail-keyboard-layout)
+	  (dolist (map (cdr (quail-map)))
+	    (let* ((to (car map))
+		   (from (quail-get-translation
+			  (cadr map) (char-to-string to) 1)))
+	      (when (and (characterp from) (characterp to))
+		(dolist (mod modifiers)
+		  (define-key local-function-key-map
+		    (vector (append mod (list from)))
+		    (vector (append mod (list to)))))))))
+	(when input-method
+	  (activate-input-method current))))
+  #+END_SRC
+** Use
+   #+BEGIN_SRC emacs-lisp
+   (cfg:reverse-input-method 'russian-computer)
+   #+END_SRC
+* Themes 
+  #+BEGIN_SRC emacs-lisp
+  (load-theme 'darktooth t)
+  #+END_SRC
+* Custom variables 
+  #+BEGIN_SRC emacs-lisp
+    (custom-set-variables
+     '(org-agenda-files '("~/Dropbox/org/tasks.org"))
+     '(org-archive-location "~/Dropbox/org/archive.org::datetree/* Finished tasks")
+     '(org-archive-mark-done t)
+     '(org-capture-templates
+       '(("p" "Personal task" entry
+	  (file+olp "~/Dropbox/org/tasks.org" "Tasks" "Personal" "Backlog")
+	  "* TODO %?" :prepend t :time-prompt t)
+	 ("w" "Task for work" entry
+	  (file+olp "~/Dropbox/org/tasks.org" "Tasks" "Work" "Backlog")
+	  "* TODO %?" :prepend t :jump-to-captured t)
+	 ("t" "Quick task capture into Inbox" entry
+	  (file+olp "~/Dropbox/org/tasks.org" "Tasks" "Inbox")
+	  "* TODO %?" :prepend t :time-prompt t :kill-buffer t)
+	 ("n" "Note" entry
+	  (file+olp "~/Dropbox/org/tasks.org" "Notes"))))
+     '(org-default-notes-file "tasks.org")
+     '(org-directory "~/Dropbox/org")
+    )
+  #+END_SRC
