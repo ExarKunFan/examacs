@@ -1,1 +1,1 @@
-("~/Documents/Projects/Python/mobile/")
+("~/.emacs.d/" "~/Documents/Projects/Python/mobile/")
